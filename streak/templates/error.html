@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}. Streak{% endblock %}
+
+{% block content %}
+<section class="error-page">
+  <div class="big">{{ icon }}</div>
+  <h1>{{ title }}</h1>
+  <p class="muted">{{ text }}</p>
+  <p style="margin-top: 18px"><a class="btn" href="{{ url_for('index') }}">На главную</a></p>
+</section>
+{% endblock %}

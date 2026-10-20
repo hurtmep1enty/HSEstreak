@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Сегодня — Streak{% endblock %}
+
+{% block content %}
+<section class="card hero">
+  <div class="hero-text">
+    <p class="eyebrow">{{ date_label }}</p>
+    <h1>{{ greeting }}, {{ g.user.username }}!</h1>
+    <p class="muted tip">💡 {{ tip }}</p>
+  </div>
+  <div class="hero-stats">
+    <div class="ring" style="--p: {{ xp_pct }}" title="Выполнено сегодня">
+      <div class="ring-in"><strong>{{ done_count }}/{{ todays|length }}</strong><span>сегодня</span></div>
+    </div>
+    <div class="streak-badge" title="Дней подряд хотя бы с одной отметкой">
+      <span class="flame">🔥</span>
+      <strong>{{ overall.streak }}</strong>
+      <span>{{ overall.streak|plural(('день', 'дня', 'дней')) }}<br>подряд</span>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Привычки на сегодня</h2>
+    <span class="muted small">Ур. {{ overall.level }} · {{ overall.title }}</span>
+  </div>
+
+  {% if all_done %}
+    <div class="all-done card">🎉 Всё на сегодня выполнено! Сад доволен, продолжай в том же духе.</div>
+  {% endif %}
+
+  {% if todays %}
+    <ul class="habit-list">
+      {% for i in todays %}
+        <li class="habit {{ 'done' if i.done }}" data-id="{{ i.habit.id }}" style="--c: {{ i.habit.color }}">
+          <div class="thumb">{{ plant_svg(i.habit.species, i.stage.index, i.habit.color, i.wilting) }}</div>
+          <div>
+            <div class="habit-name">{{ i.habit.name }}</div>
+            <div class="habit-meta">
+              {% if i.wilting %}<span class="wilt-note">увядает, полей её · </span>{% endif %}
+              +{{ xp_per }} XP · серия {{ i.streak }} · {{ i.stage.name }}
+            </div>
+          </div>
+          <form method="post" action="{{ url_for('toggle', habit_id=i.habit.id) }}" class="toggle-form">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <button class="check" aria-label="{{ 'Снять отметку' if i.done else 'Отметить выполненной' }}: {{ i.habit.name }}"></button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <div class="xp-today">
+      <div class="row"><span>Опыт за сегодня</span><strong>{{ xp_today }} / {{ xp_max }} XP</strong></div>
+      <div class="bar big"><div style="width: {{ xp_pct }}%"></div></div>
+    </div>
+  {% elif rest %}
+    <p class="muted">На сегодня дел нет, отдыхай. 🌤️</p>
+  {% else %}
+    <p class="muted">Пока нет ни одной привычки. Добавь первую ниже, и в саду появится семечко. 🌱</p>
+  {% endif %}
+</section>
+
+{% if rest %}
+<section class="card">
+  <h2>Сегодня отдыхают</h2>
+  <ul class="rest-list">
+    {% for i in rest %}
+      <li style="--c: {{ i.habit.color }}">
+        <div class="thumb">{{ plant_svg(i.habit.species, i.stage.index, i.habit.color, i.wilting) }}</div>
+        <span>{{ i.habit.name }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if can_add %}
+<details class="card add-card" id="new" {{ 'open' if not (todays or rest) }}>
+  <summary>Новая привычка</summary>
+  <form method="post" action="{{ url_for('add_habit') }}" class="habit-form" style="--hc: {{ species_list['sunflower'][1] }}">
+    {% include "_form_fields.html" %}
+    <div class="actions"><button class="btn" type="submit">🌱 Посадить семя</button></div>
+  </form>
+</details>
+{% endif %}
+{% endblock %}

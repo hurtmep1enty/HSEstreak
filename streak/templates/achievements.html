@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Награды — Streak{% endblock %}
+
+{% block content %}
+<h1>Награды</h1>
+
+<section class="card level-card">
+  <div class="level-badge"><small>УРОВЕНЬ</small><strong>{{ overall.level }}</strong></div>
+  <div class="grow">
+    <h2 style="margin-bottom:2px">{{ overall.title }}</h2>
+    <div class="bar big"><div style="width: {{ overall.xp_into }}%"></div></div>
+    <p class="muted small">{{ overall.xp_into }} / 100 XP до уровня {{ overall.level + 1 }} · всего опыта: {{ overall.xp }} · открыто наград: {{ unlocked }} из {{ items|length }}</p>
+  </div>
+</section>
+
+<div class="ach-grid">
+  {% for a in items %}
+    <div class="card ach {{ a.rarity }} {{ 'unlocked' if a.unlocked else 'locked' }}">
+      <div class="ach-icon">{{ a.icon }}</div>
+      <div>
+        <h3>{{ a.title }}<span class="rar">{{ {'common': 'обычная', 'rare': 'редкая', 'epic': 'эпическая'}[a.rarity] }}</span></h3>
+        <p class="muted small">{{ a.description }}</p>
+        {% if a.unlocked %}
+          <p class="small" style="color: var(--r); font-weight: 800">✓ Получено</p>
+        {% else %}
+          <div class="bar"><div style="width: {{ a.progress }}%"></div></div>
+          <p class="muted small">{{ a.value }} / {{ a.target }}</p>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<section class="card">
+  <div class="card-head"><h2>Украшения сада</h2><a class="small" href="{{ url_for('garden') }}">в сад →</a></div>
+  <div class="decor-row">
+    {% for d in decor %}
+      <span class="decor {{ '' if d.unlocked else 'locked' }}"><span class="di">{{ d.icon }}</span>{{ d.name }}{% if not d.unlocked %} · ур. {{ d.level }}{% endif %}</span>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

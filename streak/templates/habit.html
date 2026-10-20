@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% from "_macros.html" import heatmap with context %}
+{% block title %}{{ habit.name }}. Streak{% endblock %}
+
+{% block content %}
+<p class="small" style="margin: 0 0 10px"><a href="{{ url_for('garden') }}">← Назад в сад</a></p>
+
+<section class="card" style="--c: {{ habit.color }}; --on: {{ habit.color|on_color }}">
+  <div class="habit-hero">
+    <div class="big-plant">
+      <div class="plant s5 {{ 'wilting' if stage.wilting }}" style="font-size: {{ 52 + stage.index * 9 }}px">{{ stage.icon }}</div>
+      <div class="mound" style="margin-inline: auto"></div>
+      <div class="stage-name">{{ stage.name }}</div>
+    </div>
+
+    <div>
+      <div class="title-row">
+        <span class="bubble">{{ habit.icon or '🌱' }}</span>
+        <div>
+          <h1>{{ habit.name }}</h1>
+          <p class="muted" style="margin: 0">
+            {% if habit.note %}{{ habit.note }} · {% endif %}{{ days_label }} · {{ stage.species }}{% if habit.archived %} · на паузе{% endif %}
+          </p>
+        </div>
+      </div>
+
+      <div class="bar"><div style="width: {{ stage.progress }}%"></div></div>
+      <p class="muted small">
+        {% if stage.next_at %}{{ total }} из {{ stage.next_at }} отметок до следующей стадии{% else %}Растение выросло полностью{% endif %}
+      </p>
+
+      <div class="stat-grid">
+        <div class="stat"><b>{{ streak }}</b><span>серия сейчас</span></div>
+        <div class="stat"><b>{{ best }}</b><span>лучшая серия</span></div>
+        <div class="stat"><b>{{ total }}</b><span>всего отметок</span></div>
+        <div class="stat"><b>{{ week_pct }}%</b><span>за неделю</span></div>
+        <div class="stat"><b>{{ month_pct }}%</b><span>за 30 дней</span></div>
+      </div>
+
+      <div class="actions" style="margin-top: 16px">
+        {% if runs_today and not habit.archived %}
+          <form method="post" action="{{ url_for('toggle', habit_id=habit.id) }}">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ url_for('habit_page', habit_id=habit.id) }}">
+            <button class="btn" type="submit">{{ 'Снять отметку за сегодня' if done_today else 'Отметить сегодня' }}</button>
+          </form>
+        {% endif %}
+        <a class="btn ghost" href="{{ url_for('edit_habit', habit_id=habit.id) }}">Изменить</a>
+        <form method="post" action="{{ url_for('archive_habit', habit_id=habit.id) }}">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <button class="btn ghost" type="submit">{{ 'Вернуть в дело' if habit.archived else 'Поставить на паузу' }}</button>
+        </form>
+        <form method="post" action="{{ url_for('delete_habit', habit_id=habit.id) }}"
+              onsubmit="return confirm('Удалить привычку «{{ habit.name|e }}» вместе со всей историей?');">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <button class="btn danger" type="submit">Удалить</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Последние полгода</h2>
+  {{ heatmap(heat) }}
+</section>
+
+<section class="card">
+  <h2>В какие дни получается лучше всего</h2>
+  {% if best_count %}
+    <div class="weekday-bars">
+      {% for n in by_weekday %}
+        <div class="wd {{ 'best' if n == best_count }}">
+          <div class="wd-bar"><div style="height: {{ (n / best_count * 100)|round|int }}%"></div></div>
+          <span>{{ weekday_short[loop.index0] }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="muted">Данные появятся после первых отметок.</p>
+  {% endif %}
+</section>
+{% endblock %}

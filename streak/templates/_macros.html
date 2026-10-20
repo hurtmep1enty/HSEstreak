@@ -1,0 +1,36 @@
+{# Кольцо прогресса. pct: число от 0 до 100. #}
+{% macro ring(pct, size=112) %}
+<svg class="ring" viewBox="0 0 120 120" width="{{ size }}" height="{{ size }}" role="img" aria-label="Выполнено {{ pct }}%">
+  <circle class="ring-bg" cx="60" cy="60" r="52"/>
+  <circle class="ring-fg" cx="60" cy="60" r="52" transform="rotate(-90 60 60)"
+          style="stroke-dasharray: 326.7; stroke-dashoffset: {{ (326.7 * (1 - pct / 100))|round(1) }}"/>
+  <text x="60" y="68" text-anchor="middle" class="ring-text">{{ pct }}%</text>
+</svg>
+{% endmacro %}
+
+{# Тепловая карта. hm: результат logic.heatmap(). Клетки за последние дни ведут на страницу дня. #}
+{% macro heatmap(hm) %}
+<div class="heatmap-wrap">
+  <div class="heatmap" style="--cols: {{ hm.columns|length }}">
+    <div class="hm-months" aria-hidden="true">
+      {% for idx, label in hm.months %}<span style="grid-column: {{ idx + 1 }} / span 3">{{ label }}</span>{% endfor %}
+    </div>
+    <div class="hm-grid">
+      {% for column in hm.columns %}{% for cell in column %}
+        {% if cell %}
+          {% set tip = cell.date.day ~ ' ' ~ months_gen[cell.date.month - 1] ~ ': ' ~ cell.done ~ ' из ' ~ cell.planned %}
+          {% if cell.link %}
+            <a class="hm lv{{ cell.level }}" href="{{ url_for('day_page', iso=cell.date.isoformat()) }}" title="{{ tip }}" aria-label="{{ tip }}"></a>
+          {% else %}
+            <span class="hm lv{{ cell.level }}" title="{{ tip }}"></span>
+          {% endif %}
+        {% else %}<span class="hm none"></span>{% endif %}
+      {% endfor %}{% endfor %}
+    </div>
+  </div>
+  <div class="hm-legend">меньше
+    <span class="hm lv0"></span><span class="hm lv1"></span><span class="hm lv2"></span><span class="hm lv3"></span><span class="hm lv4"></span>
+    больше
+  </div>
+</div>
+{% endmacro %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Изменить привычку — Streak{% endblock %}
+
+{% block content %}
+<section class="card">
+  <h2>Изменить привычку</h2>
+  <form method="post" class="habit-form" style="--hc: {{ habit.color }}">
+    {% include "_form_fields.html" %}
+    <div class="actions">
+      <button class="btn" type="submit">Сохранить</button>
+      <a class="btn ghost" href="{{ url_for('garden') }}">Отмена</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Новая привычка' if not habit else 'Изменить привычку' }}. Streak{% endblock %}
+
+{% block content %}
+{% set cur_color = habit.color if habit else '#22c55e' %}
+{% set palette_hexes = palette|map(attribute=1)|list %}
+{% set cur_plant = habit.plant if habit else 'tree' %}
+{% set cur_days = habit.days if habit else [0, 1, 2, 3, 4, 5, 6] %}
+
+<section class="card" style="max-width: 760px; margin-inline: auto">
+  <h1>{{ 'Новая привычка' if not habit else 'Изменить привычку' }}</h1>
+
+  <form method="post" class="form" action="{{ url_for('add_habit') if not habit else url_for('edit_habit', habit_id=habit.id) }}">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+
+    <label class="field">Название
+      <input type="text" name="name" maxlength="40" required autofocus value="{{ habit.name if habit else '' }}"
+             placeholder="Например, читать перед сном">
+    </label>
+
+    <label class="field">Цель
+      <input type="text" name="note" maxlength="40" value="{{ habit.note if habit else '' }}" placeholder="Например, 20 минут">
+      <span class="hint">Необязательно. Будет видна под названием.</span>
+    </label>
+
+    <fieldset class="field">
+      <legend>Значок</legend>
+      <div class="icon-grid">
+        <label class="opt" title="Без значка">
+          <input type="radio" name="icon" value="" {{ 'checked' if not habit or not habit.icon }}><span class="none">нет</span>
+        </label>
+        {% for icon in icons %}
+          <label class="opt"><input type="radio" name="icon" value="{{ icon }}" {{ 'checked' if habit and habit.icon == icon }}><span>{{ icon }}</span></label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Цвет</legend>
+      <div class="swatches">
+        {% for name, hex in palette %}
+          <label class="swatch-pick" title="{{ name }}">
+            <input type="radio" name="color" value="{{ hex }}" {{ 'checked' if cur_color == hex }}>
+            <span style="background: {{ hex }}"></span>
+          </label>
+        {% endfor %}
+        <label class="swatch-pick custom" title="Свой цвет">
+          <input type="radio" name="color" value="custom" id="color-custom-radio" {{ 'checked' if cur_color not in palette_hexes }}>
+          <span></span>
+        </label>
+        <span class="custom-color">
+          <input type="color" name="color_custom" id="color-custom" value="{{ cur_color }}" aria-label="Свой цвет">
+          <span class="hint">свой цвет</span>
+        </span>
+      </div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Какое растение выращивать</legend>
+      <div class="plant-grid">
+        {% for key in plant_keys %}
+          {% set p = plants[key] %}
+          <label class="opt">
+            <input type="radio" name="plant" value="{{ key }}" {{ 'checked' if cur_plant == key }}>
+            <span><span class="seq">{{ p.stages[0][0] }}{{ p.stages[2][0] }}{{ p.stages[5][0] }}</span><span class="nm">{{ p.title }}</span></span>
+          </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="field days">
+      <legend>В какие дни выполнять</legend>
+      {% for name in weekday_short %}
+        <label class="day-pick">
+          <input type="checkbox" name="days" value="{{ loop.index0 }}" {{ 'checked' if loop.index0 in cur_days }}>
+          <span>{{ name }}</span>
+        </label>
+      {% endfor %}
+      <div class="quick" style="width: 100%">
+        <button type="button" data-days="0,1,2,3,4,5,6">Каждый день</button>
+        <button type="button" data-days="0,1,2,3,4">Будни</button>
+        <button type="button" data-days="5,6">Выходные</button>
+        <button type="button" data-days="0,2,4">Пн, Ср, Пт</button>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button class="btn" type="submit">{{ 'Посадить семя' if not habit else 'Сохранить' }}</button>
+      <a class="btn ghost" href="{{ url_for('index') if not habit else url_for('habit_page', habit_id=habit.id) }}">Отмена</a>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Быстрый выбор дней недели.
+  document.querySelectorAll('[data-days]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var wanted = button.dataset.days.split(',');
+      document.querySelectorAll('input[name=days]').forEach(function (box) {
+        box.checked = wanted.indexOf(box.value) !== -1;
+      });
+    });
+  });
+  // Выбор своего цвета сам включает пункт "свой цвет".
+  var custom = document.getElementById('color-custom');
+  if (custom) {
+    custom.addEventListener('input', function () {
+      document.getElementById('color-custom-radio').checked = true;
+    });
+  }
+</script>
+{% endblock %}

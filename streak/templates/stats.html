@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Статистика — Streak{% endblock %}
+
+{% block content %}
+<h1>Статистика</h1>
+
+<div class="tiles">
+  {% for t in tiles %}
+    <div class="card tile">
+      <div class="ti">{{ t.icon }}</div>
+      <div><strong>{{ t.value }}</strong><span>{{ t.label }}</span></div>
+    </div>
+  {% endfor %}
+</div>
+
+<section class="card">
+  <div class="card-head"><h2>Активность за полгода</h2><span class="muted small">нажми на день, чтобы поправить отметки</span></div>
+  <div class="heat-scroll">
+    <div class="heat-wrap">
+      <div class="heat-days"><span>Пн</span><span></span><span>Ср</span><span></span><span>Пт</span><span></span><span></span></div>
+      <div class="heat">
+        {% for col in heat.columns %}
+          <div class="heat-col">
+            <div class="heat-month">{{ heat.labels[loop.index0] }}</div>
+            {% for cell in col %}
+              {% if cell.cls == 'future' %}
+                <span class="hcell future"></span>
+              {% else %}
+                <a class="hcell {{ cell.cls }}" href="{{ url_for('day_view', day=cell.date.isoformat()) }}"
+                   title="{{ cell.date.strftime('%d.%m.%Y') }}: {{ cell.done }} из {{ cell.planned }}"></a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="heat-legend">
+    меньше <span class="hcell l0"></span><span class="hcell l1"></span><span class="hcell l2"></span><span class="hcell l3"></span><span class="hcell l4"></span> больше
+  </div>
+</section>
+
+<section class="card">
+  <div class="month-nav">
+    <a href="{{ url_for('stats', year=prev.year, month=prev.month) }}" aria-label="Предыдущий месяц">←</a>
+    <h2>{{ month_label }}</h2>
+    <a href="{{ url_for('stats', year=next.year, month=next.month) }}" aria-label="Следующий месяц">→</a>
+  </div>
+
+  <table class="calendar">
+    <thead>
+      <tr>{% for name in weekday_short %}<th>{{ name }}</th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+      {% for week in weeks %}
+        <tr>
+          {% for cell in week %}
+            <td class="cell {{ cell.state }} {{ 'today' if cell.date == today }}">
+              {% if cell.state == 'out' %}
+              {% elif cell.state == 'future' %}
+                {{ cell.date.day }}
+              {% else %}
+                <a href="{{ url_for('day_view', day=cell.date.isoformat()) }}">
+                  <span>{{ cell.date.day }}</span>
+                  {% if cell.state in ('full', 'partial', 'empty') %}<small>{{ cell.done }}/{{ cell.planned }}</small>{% endif %}
+                </a>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="legend muted">
+    <span><span class="swatch full"></span>всё выполнено</span>
+    <span><span class="swatch partial"></span>частично</span>
+    <span><span class="swatch empty"></span>пропуск</span>
+  </p>
+</section>
+
+<section class="card">
+  <h2>Привычки</h2>
+  {% if rows %}
+    <div class="table-scroll">
+      <table class="table">
+        <thead>
+          <tr><th>Привычка</th><th>Неделя</th><th>30 дней</th><th class="num">Серия</th><th class="num">Рекорд</th><th class="num">Всего</th></tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+            <tr style="--c: {{ r.habit.color }}">
+              <td><span class="dot"></span>{{ r.habit.name }}
+                {% if r.habit.id == worst %}<span class="tag">чаще всего пропускаешь</span>{% endif %}
+              </td>
+              <td><span class="mini-bar"><i style="width: {{ r.week }}%"></i></span>{{ r.week }}%</td>
+              <td><span class="mini-bar"><i style="width: {{ r.month }}%"></i></span>{{ r.month }}%</td>
+              <td class="num">{{ r.streak }}</td>
+              <td class="num">{{ r.best }}</td>
+              <td class="num">{{ r.total }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="muted small">Процент = выполнено / запланировано × 100%. Считаются только дни, когда привычка запланирована.</p>
+  {% else %}
+    <p class="muted">Пока нет привычек.</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>По дням недели</h2>
+  {% if best_weekday %}
+    <p class="muted">Самый продуктивный день: <strong>{{ best_weekday }}</strong></p>
+    <div class="weekday-bars">
+      {% for n in by_weekday %}
+        <div class="wd {{ 'best' if n == best_count }}">
+          <b>{{ n }}</b>
+          <div class="wd-bar"><div style="height: {{ (n / best_count * 100)|round|int }}%"></div></div>
+          <span>{{ weekday_short[loop.index0] }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="muted">Данные появятся после первых отметок.</p>
+  {% endif %}
+</section>
+{% endblock %}

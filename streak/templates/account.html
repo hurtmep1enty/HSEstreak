@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Настройки — Streak{% endblock %}
+
+{% block content %}
+<h1>Настройки</h1>
+<p class="muted">Аккаунт <strong>{{ g.user.username }}</strong> · с нами с {{ member_since }}</p>
+
+<div class="settings-grid">
+
+  <section class="card">
+    <h2>Оформление</h2>
+    <p class="muted small">Выбор запоминается в этом браузере.</p>
+    <p><strong class="small">Тема</strong></p>
+    <div class="seg" role="group" aria-label="Тема">
+      <button type="button" data-theme-set="light">☀️ Светлая</button>
+      <button type="button" data-theme-set="dark">🌙 Тёмная</button>
+      <button type="button" data-theme-set="auto">Как в системе</button>
+    </div>
+    <p style="margin-top:16px"><strong class="small">Цвет сайта</strong></p>
+    <div class="accents" role="group" aria-label="Цвет сайта">
+      {% for key, color, name in [('green', '#43a047', 'Зелёный'), ('blue', '#1e88e5', 'Синий'), ('violet', '#7e57c2', 'Фиолетовый'),
+                                   ('pink', '#d81b60', 'Розовый'), ('orange', '#ef6c00', 'Оранжевый'), ('teal', '#00897b', 'Бирюзовый'),
+                                   ('red', '#e53935', 'Красный'), ('slate', '#546e7a', 'Серый')] %}
+        <button type="button" class="accent-btn" data-accent-set="{{ key }}" style="--a: {{ color }}" title="{{ name }}" aria-label="{{ name }}"></button>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Часовой пояс</h2>
+    <p class="muted small">От него зависит, когда начинается новый день и можно отмечать привычки. Сейчас у тебя {{ now }}.</p>
+    <form method="post" action="{{ url_for('set_timezone') }}" class="habit-form">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <label class="field">
+        <select name="tz">
+          {% if not tz %}<option value="" selected disabled>Выбери свой город</option>{% endif %}
+          {% for key, label in zones %}
+            <option value="{{ key }}" {{ 'selected' if key == tz }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <div class="actions"><button class="btn" type="submit">Сохранить</button></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Смена пароля</h2>
+    <form method="post" action="{{ url_for('change_password') }}" class="habit-form">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <label class="field">Текущий пароль
+        <input type="password" name="old" required autocomplete="current-password">
+      </label>
+      <label class="field">Новый пароль
+        <input type="password" name="password" required minlength="8" maxlength="128" autocomplete="new-password">
+      </label>
+      <label class="field">Повторите новый пароль
+        <input type="password" name="password2" required minlength="8" maxlength="128" autocomplete="new-password">
+      </label>
+      <div class="actions"><button class="btn" type="submit">Изменить пароль</button></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Твои данные</h2>
+    <p class="muted small">Скачай все свои отметки таблицей (открывается в Excel).</p>
+    <div class="actions"><a class="btn ghost" href="{{ url_for('export_csv') }}">⬇ Скачать CSV</a></div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+    <form method="post" action="{{ url_for('logout') }}">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <button class="btn ghost" type="submit">Выйти из аккаунта</button>
+    </form>
+  </section>
+
+  <section class="card danger-zone">
+    <h2>Удалить аккаунт</h2>
+    <p class="muted small">Навсегда удалит аккаунт, все привычки и историю. Это нельзя отменить. Подтверди паролем.</p>
+    <form method="post" action="{{ url_for('delete_account') }}" class="habit-form"
+          onsubmit="return confirm('Точно удалить аккаунт и все данные? Это необратимо.');">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <label class="field">Пароль
+        <input type="password" name="password" required autocomplete="current-password">
+      </label>
+      <div class="actions"><button class="btn danger" type="submit">Удалить навсегда</button></div>
+    </form>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+/* Цвета и анимация растений (картинки рисует plants.py) */
+
+:root {
+  --leaf: #4caf50;
+  --leaf-d: #2e7d32;
+  --leaf-l: #8bd18f;
+  --stem: #3f9b45;
+  --soil: #8d6e5a;
+  --soil-l: #a98a74;
+  --grass: #5fb85f;
+  --trunk: #8a6a4a;
+  --cactus: #58a85f;
+  --cactus-d: #357f48;
+  --bam: #9ccc65;
+  --spine: #fff8dc;
+  --seed: #6d4c41;
+  --petal: #ffffff;
+  --petal-edge: #d5dcd2;
+  --ctr: #5b3a1c;
+  --ctr-l: #8a5a2c;
+  --spark: #ffd54f;
+}
+
+:root[data-theme="dark"] {
+  --leaf: #3d9248;
+  --leaf-d: #2a6b37;
+  --leaf-l: #5cb566;
+  --stem: #3a8d44;
+  --soil: #6c5242;
+  --soil-l: #82664f;
+  --grass: #3f9a4b;
+  --trunk: #7a5c3f;
+  --cactus: #4a9553;
+  --cactus-d: #2f6f40;
+  --bam: #86b256;
+  --petal: #f3f5f0;
+  --petal-edge: #b9c2b5;
+}
+
+.plant { display: block; width: 100%; height: auto; overflow: visible; }
+
+.plant .leaf     { fill: var(--leaf); }
+.plant .leaf-d   { fill: var(--leaf-d); }
+.plant .leaf-l   { fill: var(--leaf-l); opacity: .7; }
+.plant .stem     { stroke: var(--stem); }
+.plant .soil     { fill: var(--soil); }
+.plant .soil-l   { fill: var(--soil-l); }
+.plant .grass    { stroke: var(--grass); }
+.plant .trunk    { fill: var(--trunk); }
+.plant .trunk-s  { stroke: var(--trunk); }
+.plant .cac      { fill: var(--cactus); }
+.plant .cac-s    { stroke: var(--cactus); }
+.plant .cac-d    { stroke: var(--cactus-d); opacity: .6; }
+.plant .spine    { stroke: var(--spine); fill: none; }
+.plant .bam      { stroke: var(--bam); }
+.plant .seed     { fill: var(--seed); }
+.plant .seed-line{ stroke: #3e2a22; opacity: .6; }
+.plant .petal-w  { fill: var(--petal); stroke: var(--petal-edge); stroke-width: .8; }
+.plant .ctr      { fill: var(--ctr); }
+.plant .ctr-l    { fill: var(--ctr-l); }
+.plant .hl       { fill: #fff; opacity: .7; }
+.plant .spark    { fill: var(--spark); transform-box: fill-box; transform-origin: center; animation: twinkle 2.6s ease-in-out infinite; }
+
+/* Цвет привычки (--hc) и его оттенки */
+.plant .hc   { fill: var(--hc); }
+.plant .hc-d { fill: color-mix(in srgb, var(--hc) 68%, #000); }
+.plant .hc-l { fill: color-mix(in srgb, var(--hc) 45%, #fff); }
+.plant .hc-ds{ stroke: color-mix(in srgb, var(--hc) 62%, #000); fill: none; }
+
+/* Лёгкое покачивание */
+.plant .body { transform-origin: 60px 126px; animation: sway 6s ease-in-out infinite; }
+.plant:nth-child(2n) .body { animation-delay: -2s; }
+
+/* Увядшее растение: серое и наклонённое */
+.plant.wilt { filter: grayscale(.8) brightness(.93); }
+.plant.wilt .body { animation: none; transform: rotate(11deg); }
+.plant.wilt .spark { display: none; }
+
+@keyframes sway    { 0%, 100% { transform: rotate(-1.4deg); } 50% { transform: rotate(1.4deg); } }
+@keyframes twinkle { 0%, 100% { transform: scale(.55); opacity: .5; } 50% { transform: scale(1.15); opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .plant .body, .plant .spark { animation: none; }
+}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}{{ label }} — Streak{% endblock %}
+
+{% block content %}
+<div class="day-nav">
+  {% if prev_day %}<a class="icon-btn" href="{{ url_for('day_view', day=prev_day) }}" aria-label="Предыдущий день">←</a>
+  {% else %}<span class="icon-btn off">←</span>{% endif %}
+  <h1>{{ label }}</h1>
+  {% if next_day %}<a class="icon-btn" href="{{ url_for('day_view', day=next_day) }}" aria-label="Следующий день">→</a>
+  {% else %}<span class="icon-btn off">→</span>{% endif %}
+</div>
+
+<section class="card">
+  <div class="card-head">
+    <h2>{{ 'Сегодня' if is_today else 'Отметки за день' }}</h2>
+    <span class="muted small">Выполнено {{ done_count }} из {{ items|length }}</span>
+  </div>
+
+  {% if not is_today %}
+    <p class="muted small">Забыл отметить? Можно поправить любой из последних 365 дней: серии и опыт пересчитаются.</p>
+  {% endif %}
+
+  {% if items %}
+    <ul class="habit-list">
+      {% for i in items %}
+        <li class="habit {{ 'done' if i.done }}" data-id="{{ i.habit.id }}" style="--c: {{ i.habit.color }}">
+          <div class="thumb">{{ plant_svg(i.habit.species, 4 if i.done else 1, i.habit.color) }}</div>
+          <div>
+            <div class="habit-name">{{ i.habit.name }}</div>
+            <div class="habit-meta">
+              {% if i.before_created %}<span class="wilt-note">до создания привычки: дата создания сдвинется назад</span>{% else %}+{{ xp_per }} XP{% endif %}
+            </div>
+          </div>
+          <form method="post" action="{{ url_for('toggle', habit_id=i.habit.id) }}" class="toggle-form">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <input type="hidden" name="day" value="{{ day_iso }}">
+            <input type="hidden" name="back" value="day">
+            <button class="check" aria-label="{{ 'Снять отметку' if i.done else 'Отметить выполненной' }}: {{ i.habit.name }}"></button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">В этот день привычек по расписанию не было.</p>
+  {% endif %}
+</section>
+
+<div class="actions">
+  <a class="btn ghost" href="{{ url_for('stats', year=day.year, month=day.month) }}">← К календарю</a>
+  {% if not is_today %}<a class="btn ghost" href="{{ url_for('index') }}">К сегодняшнему дню</a>{% endif %}
+</div>
+{% endblock %}

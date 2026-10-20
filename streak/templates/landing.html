@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Streak — трекер привычек{% endblock %}
+
+{% block content %}
+<section class="card landing">
+  <div class="growth" aria-hidden="true">
+    {% for stage in range(6) %}
+      <div>{{ plant_svg('sunflower', stage, '#fdd835') }}</div>
+    {% endfor %}
+  </div>
+  <p class="eyebrow">Трекер привычек</p>
+  <h1>Выращивай привычки, как растения</h1>
+  <p class="muted">
+    Заведи привычки, отмечай их каждый день, и в твоём саду будут расти цветы и деревья.
+    Выполняешь, и они крепнут. Пропускаешь, и они вянут.
+  </p>
+  <div class="actions center">
+    <a class="btn" href="{{ url_for('register') }}">Создать аккаунт</a>
+    <a class="btn ghost" href="{{ url_for('login') }}">Войти</a>
+  </div>
+</section>
+
+<div class="feature-grid">
+  <div class="card feature"><div class="fi">🌻</div><h3>8 видов растений</h3><p class="muted small">От подсолнуха до бамбука. У каждого шесть стадий роста, а цвет выбираешь ты.</p></div>
+  <div class="card feature"><div class="fi">📊</div><h3>Календарь и серии</h3><p class="muted small">Тепловая карта за полгода, проценты выполнения и рекорды по каждой привычке.</p></div>
+  <div class="card feature"><div class="fi">🏆</div><h3>Опыт и награды</h3><p class="muted small">Уровни, 21 достижение и украшения сада: бабочки, радуга, светлячки.</p></div>
+  <div class="card feature"><div class="fi">🌙</div><h3>Тёмная тема</h3><p class="muted small">Ночью в саду появляются звёзды. Цвет сайта можно сменить в настройках.</p></div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Мой сад — Streak{% endblock %}
+
+{% block content %}
+{% set open_decor = decor|selectattr('unlocked')|map(attribute='key')|list %}
+
+<div class="garden-head">
+  <div>
+    <h1>Мой сад</h1>
+    <p class="muted">Каждая привычка это отдельное растение. Выполняешь, и оно растёт, пропускаешь, и вянет.</p>
+  </div>
+  <a class="btn" href="{{ url_for('index') }}#new">＋ Новое растение</a>
+</div>
+
+<section class="scene" aria-label="Сад">
+  <div class="sun"></div><div class="moon"></div><div class="stars"></div>
+  <div class="cloud c1"></div><div class="cloud c2"></div>
+  {% if 'cloud' in open_decor %}<div class="cloud c3"></div><div class="cloud c4"></div>{% endif %}
+  {% if 'rainbow' in open_decor %}<div class="rainbow"></div>{% endif %}
+  {% if 'butterfly' in open_decor %}<span class="fly butterfly" title="Бабочки открыты на 2 уровне">🦋</span>{% endif %}
+  {% if 'bee' in open_decor %}<span class="fly bee" title="Пчёлы открыты на 3 уровне">🐝</span>{% endif %}
+  {% if 'bird' in open_decor %}<span class="fly bird" title="Птицы открыты на 8 уровне">🐦</span>{% endif %}
+  {% if 'ladybug' in open_decor %}<span class="fly ladybug" title="Божья коровка открыта на 5 уровне">🐞</span>{% endif %}
+  {% if 'fireflies' in open_decor %}<div class="fireflies"><i></i><i></i><i></i><i></i><i></i><i></i></div>{% endif %}
+
+  <svg class="hills" viewBox="0 0 800 300" preserveAspectRatio="none" aria-hidden="true">
+    <path class="h1" d="M0 40C120 0 240 70 380 36C520 4 650 66 800 24V300H0Z"/>
+    <path class="h2" d="M0 96C140 60 270 120 410 90C550 62 680 112 800 78V300H0Z"/>
+  </svg>
+
+  {% if plants %}
+    <div class="plots">
+      {% for p in plants %}
+        <a class="plot" href="#bed-{{ p.habit.id }}" title="{{ p.habit.name }}: {{ p.stage.name }}">
+          {{ plant_svg(p.habit.species, p.stage.index, p.habit.color, p.wilting, label=p.habit.name) }}
+          <span class="plot-name">{{ p.habit.name }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="scene-empty">
+      <p>Сад пока пуст. Посади первое семечко на главной странице. 🌱</p>
+    </div>
+  {% endif %}
+</section>
+
+<section class="card">
+  <div class="card-head"><h2>Украшения сада</h2>
+    <span class="muted small">открываются с новыми уровнями{% if next_decor %}, следующее на {{ next_decor.level }} уровне{% endif %}</span>
+  </div>
+  <div class="decor-row">
+    <span class="decor"><span class="di">☀️</span>Солнце и облака</span>
+    {% for d in decor %}
+      <span class="decor {{ '' if d.unlocked else 'locked' }}" title="{{ 'Открыто' if d.unlocked else 'Откроется на ' ~ d.level ~ ' уровне' }}">
+        <span class="di">{{ d.icon }}</span>{{ d.name }}{% if not d.unlocked %} · ур. {{ d.level }}{% endif %}
+      </span>
+    {% endfor %}
+  </div>
+  <p class="muted small">Переключи тему на тёмную, и в саду наступит ночь со звёздами. ✨</p>
+</section>
+
+{% if plants %}
+<h2>Грядки</h2>
+<div class="beds">
+  {% for p in plants %}
+    <article class="card bed" id="bed-{{ p.habit.id }}" style="--c: {{ p.habit.color }}">
+      <div class="thumb">{{ plant_svg(p.habit.species, p.stage.index, p.habit.color, p.wilting, label=p.habit.name) }}</div>
+      <div>
+        <h3>{{ p.habit.name }}</h3>
+        <p>
+          <span class="chip {{ 'warn' if p.wilting }}">{{ p.stage.icon }} {{ p.stage.name }}</span>
+          <span class="muted small">{{ p.species_name }} · {{ p.days_label }}</span>
+        </p>
+        <div class="bar"><div style="width: {{ p.stage.progress }}%"></div></div>
+        <p class="muted small">
+          {% if p.stage.next_at %}
+            {{ p.total }} из {{ p.stage.next_at }} отметок до следующей стадии
+          {% else %}
+            Максимальная стадия, отметок: {{ p.total }}
+          {% endif %}
+        </p>
+        <p class="small">🔥 Серия: <strong>{{ p.streak }}</strong>{% if p.wilting %} · <span class="wilt-note" style="color: var(--warn)">растение увядает, отметь привычку!</span>{% endif %}</p>
+
+        <div class="actions">
+          <a class="btn ghost small" href="{{ url_for('edit_habit', habit_id=p.habit.id) }}">Изменить</a>
+          <form method="post" action="{{ url_for('delete_habit', habit_id=p.habit.id) }}"
+                onsubmit="return confirm('Удалить привычку «{{ p.habit.name|e }}» вместе со всей историей?');">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <button class="btn danger small" type="submit">Удалить</button>
+          </form>
+        </div>
+      </div>
+    </article>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

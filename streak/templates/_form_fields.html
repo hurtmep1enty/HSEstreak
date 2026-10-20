@@ -1,0 +1,57 @@
+{# Поля формы привычки. Используются и при создании, и при редактировании. #}
+{% set cur_species = habit.species if habit else 'sunflower' %}
+{% set cur_color = habit.color if habit else species_list['sunflower'][1] %}
+{% set cur_days = habit.days if habit else [0, 1, 2, 3, 4, 5, 6] %}
+<input type="hidden" name="csrf" value="{{ csrf_token() }}">
+
+<label class="field">Название
+  <input type="text" name="name" maxlength="40" required
+         value="{{ habit.name if habit else '' }}" placeholder="Например, читать 20 минут">
+</label>
+
+<fieldset class="field">
+  <legend>Какое растение вырастет</legend>
+  <div class="species-grid">
+    {% for key, sp in species_list.items() %}
+      <label class="sp" title="{{ sp[2] }}">
+        <input type="radio" name="species" value="{{ key }}" {{ 'checked' if key == cur_species }}>
+        <span class="sp-card">
+          {{ plant_svg(key, 4, None, label=sp[0]) }}
+          <span class="sp-name">{{ sp[0] }}</span>
+        </span>
+      </label>
+    {% endfor %}
+  </div>
+</fieldset>
+
+<fieldset class="field">
+  <legend>Цвет</legend>
+  <div class="swatches">
+    {% for c in palette %}
+      <label class="sw" title="{{ c }}">
+        <input type="radio" name="color" value="{{ c }}" {{ 'checked' if c == cur_color }}>
+        <span style="--sw: {{ c }}"></span>
+      </label>
+    {% endfor %}
+    <label class="sw custom" title="Свой цвет">
+      <input type="radio" name="color" value="{{ cur_color }}" {{ 'checked' if cur_color not in palette }}>
+      <span {% if cur_color not in palette %}style="background: {{ cur_color }}; --sw: {{ cur_color }}"{% endif %}></span>
+      <input type="color" value="{{ cur_color }}" aria-label="Выбрать свой цвет">
+    </label>
+  </div>
+</fieldset>
+
+<fieldset class="field days">
+  <legend>В какие дни выполнять</legend>
+  {% for name in weekday_short %}
+    <label class="day-pick">
+      <input type="checkbox" name="days" value="{{ loop.index0 }}" {{ 'checked' if loop.index0 in cur_days }}>
+      <span>{{ name }}</span>
+    </label>
+  {% endfor %}
+  <span class="day-presets">
+    <button type="button" class="link-btn" data-days="0,1,2,3,4,5,6">Все</button>
+    <button type="button" class="link-btn" data-days="0,1,2,3,4">Будни</button>
+    <button type="button" class="link-btn" data-days="5,6">Выходные</button>
+  </span>
+</fieldset>
